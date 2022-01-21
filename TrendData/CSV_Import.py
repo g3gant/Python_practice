@@ -1,26 +1,21 @@
 from asyncore import read
-from email.header import Header
+#from email.header import Header
 from numpy import NaN
 import pandas
 import csv
 from typing import List
 import glob
+import time
 
-#Get files in the directory
-path = 'c:/trends'
-files = glob.glob(path+'/*.csv')
-print(files)
 
-#Processed needs to be stored in the file, in case the program was restarted, it will not process all files over again
-processed = {}
-pivot = pandas.DataFrame
+
 
 
 
 def ReadIntoTable(fileName):
 
     #f = open ('test.Csv','r',delimiter =' ')
-    trend_data = pandas.read_csv(files[0], sep = ';', header = 0)
+    trend_data = pandas.read_csv(fileName, sep = ';', header = 0)
     #reader = csv.reader(f)
 
     points = {}
@@ -53,14 +48,36 @@ def CleanName(names):
     return newNames
 
 
-pivot = ReadIntoTable(files[1])
+
+#Get files in the directory
+path = 'c:/trends'
+
+while True:
+
+    files = glob.glob(path+'/*.csv')
+    #print(files)
+
+    #Processed needs to be stored in the file, in case the program was restarted, it will not process all files over again
+    processed = {}
+    pivot = pandas.DataFrame
+
+    for file in files:
+        if file not in processed:
+            processed[file] = True
+            pivot = ReadIntoTable(file)
+
+            newName = file.lower().replace('.csv','_modified.csv')
+            newName = newName.replace(path,path+'/excel')
+            print (newName + "  Has been processed!")
+            pivot.to_csv(newName)
+            pivot.to_excel('1.xls')
+        continue
+    print (processed)
+    time.sleep(60)
 
 
 
 
 
-newName = files[0].lower().replace('.csv','_modified.csv')
-newName = newName.replace(path,path+'/excel')
-print (newName)
-pivot.to_csv(newName)
+
 
