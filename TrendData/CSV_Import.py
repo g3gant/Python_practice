@@ -1,6 +1,8 @@
 from asyncore import read
+from multiprocessing.sharedctypes import Value
 #from email.header import Header
 from numpy import NaN
+import numpy as np
 import pandas
 import csv
 from typing import List
@@ -18,18 +20,67 @@ def ReadIntoTable(fileName):
     #f = open ('test.Csv','r',delimiter =' ')
     trend_data = pandas.read_csv(fileName, sep = ';', header = 0)
     #reader = csv.reader(f)
-
+    #print(trend_data)
     points = {}
     newList = list()
-    points =trend_data['Data Source'].unique() 
-
-    trend_data['DateTime'] = pandas.to_datetime(trend_data['DateTime'])
-    pivot = pandas.pivot_table(trend_data,index = 'DateTime',columns = 'Data Source')
+    points =trend_data['Data Source'].unique()
+    uni_dates =  trend_data['DateTime'].unique()
     
+    #print(uni_dates)
+    
+    trend_data['DateTime'] = pandas.to_datetime(trend_data['DateTime'])
+    #pivot = pandas.pivot_table(trend_data,index = 'DateTime',columns = 'Data Source')
+    
+    #print (trend_data)
+
+    noDup = trend_data.drop_duplicates(subset=['DateTime','Data Source'], keep='first')
+    #trend_data.reset_index()
+    
+    #print (noDup)
+    
+    #print(trend_data)
+
+    pivot = pandas.pivot(noDup,index = 'DateTime',columns = 'Data Source', values = 'Value')
+    #pivot = pivot.fillna(0)
+    #pivot = pivot.dropna(axis='columns')
+    
+    
+    print('######################################## PIVOT #############################')
+    #print(trend_data['Value'])
+    print(pivot)
+    print('######################################## END PIVOT #############################')
+    #print(test_pivot)
+    
+
     oldNames = []
     colNames = pivot.columns
+    pivot = pivot.loc[:, pivot.columns.notnull()]
+
+    #pivot = pivot.round(5)
+    tmp = pivot.select_dtypes(include=[np.number])
+    #pivot.loc[:, tmp.columns] = np.round(tmp)
+    #print (pivot.loc[:, tmp.columns])
+    pivot = pivot.resample('15min').pad()
+    pivot.ffill(inplace = True)
+    #df = pivot.set_index('DateTime').resample('15M').pad()
+
+
+    print (pivot)
+
+    
+    for col in pivot.columns:
+        pivot[col] = pandas.to_numeric(pivot[col], errors = 'ignore')
+    print('========= Data Types ======')
+    print(pivot.index.dtype)
+    print(pivot.dtypes)
+    print('========= End Data Types ======')
+    
+    #pivot.index.resample('15M')
+
+    print (pivot)
     for col in colNames:
-        oldNames.append(col[1])
+        print (col)
+        oldNames.append(col)
 
     newNames = CleanName(oldNames)
     pivot.columns = newNames
@@ -75,7 +126,7 @@ while True:
             newName = file.lower().replace('.csv','_modified.csv')
             newName = newName.replace(path,path+'/excel')
             print (newName + "  Has been processed!")
-            pivot.to_csv(newName)
+            #pivot.to_csv(newName)
             exec_name = newName.replace('.csv','.xlsx')
             pivot.to_excel(exec_name)
             SaveProcessed()
