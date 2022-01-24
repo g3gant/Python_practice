@@ -6,6 +6,7 @@ import csv
 from typing import List
 import glob
 import time
+import json
 
 
 
@@ -47,22 +48,27 @@ def CleanName(names):
         newNames.append(newName)
     return newNames
 
+def SaveProcessed():
+    json_process = json.dumps(processed, indent=2)
 
+    with open('processed.json','w') as f:
+        f.write(json_process)
+    
 
 #Get files in the directory
 path = 'c:/trends'
-
+processed = {}
 while True:
 
     files = glob.glob(path+'/*.csv')
     #print(files)
 
     #Processed needs to be stored in the file, in case the program was restarted, it will not process all files over again
-    processed = {}
+    
     pivot = pandas.DataFrame
 
     for file in files:
-        if file not in processed:
+        if not processed.get(file):
             processed[file] = True
             pivot = ReadIntoTable(file)
 
@@ -70,10 +76,12 @@ while True:
             newName = newName.replace(path,path+'/excel')
             print (newName + "  Has been processed!")
             pivot.to_csv(newName)
-            pivot.to_excel('1.xls')
-        continue
+            exec_name = newName.replace('.csv','.xlsx')
+            pivot.to_excel(exec_name)
+            SaveProcessed()
     print (processed)
-    time.sleep(60)
+    
+    time.sleep(10)
 
 
 
