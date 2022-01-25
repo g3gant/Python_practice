@@ -1,6 +1,14 @@
-#from asyncore import read
-#from multiprocessing.sharedctypes import Value
-#from email.header import Header
+"""
+Program: Desigo CC 4.xx and 5.0 Trend Data convertor from CSV file into EXCEL files.
+Author: Anton Gegeniger
+e-Mail: anton.gegeniger@siemens.com
+Package requirements:
+    Python                  3.8 +
+    pandas                  1.3.5
+    numpy                   1.19.5
+    xlwt                    1.3.0
+
+"""
 import numpy as np
 import pandas
 import glob
@@ -20,24 +28,30 @@ processed_fn = './processed.json'
 
 
 def ReadIntoTable(fileName):
-
+    #read csv file into DataFrame
     trend_data = pandas.read_csv(fileName, sep = ';', header = 0)
-   
+    #convert Timestamp into DateTime format 
     trend_data['DateTime'] = pandas.to_datetime(trend_data['DateTime'])
+    #drop duplicates in timestamp for the same points
     noDup = trend_data.drop_duplicates(subset=['DateTime','Data Source'], keep='first')
+    #pivotig the table by TimeStamp and point names as rows
     pivot = pandas.pivot(noDup,index = 'DateTime',columns = 'Data Source', values = 'Value')
-    oldNames = []
+    
     colNames = pivot.columns
+    #removing columns with NaN data if exist
     pivot = pivot.loc[:, pivot.columns.notnull()]
+    #resampling table to 15 minutes period
     pivot = pivot.resample('15min').pad()
+    #filling gaps with upstream data
     pivot.ffill(inplace = True)
-    #print (pivot)
-
+    
+    #converting numeric columns to Float64
     for col in pivot.columns:
         pivot[col] = pandas.to_numeric(pivot[col], errors = 'ignore')
 
     
-    #print (pivot)
+    #cleaning columns names from 'System:ManagementView.....'
+    oldNames = []
     for col in colNames:
         oldNames.append(col)
 
@@ -150,10 +164,7 @@ while True:
             except:
                 print ('\033[93m' + outFileName + "  Hasn't been saved! Make sure it is not open and folder is not setup as Read Only" + '\033[0m')
         
-                 
-    
 
-    
     time.sleep(10)
 
 
