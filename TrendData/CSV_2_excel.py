@@ -132,8 +132,6 @@ ReadProcessed()
 while True:
 
     files = glob.glob(settings['TrendPath'] +'/*.csv')
-    #outFileName = files[0].replace(settings['TrendPath'],settings['OutputPath']).lower().replace('.csv','.xlsx')
-    
     
     #Processed needs to be stored in the file, in case the program was restarted, it will not process all files over again
     pivot = pandas.DataFrame
@@ -151,8 +149,6 @@ while True:
                 processed[file] = True
                 SaveProcessed()
                 print ('\033[92m' + outFileName + "  Has been processed!" + '\033[0m')
-                
-                
                 
             except:
                 print ('\033[93m' + outFileName + "  Hasn't been saved! Make sure it is not open and folder is not setup as Read Only" + '\033[0m')
