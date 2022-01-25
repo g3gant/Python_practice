@@ -1,11 +1,8 @@
-from asyncore import read
-from multiprocessing.sharedctypes import Value
+#from asyncore import read
+#from multiprocessing.sharedctypes import Value
 #from email.header import Header
-from numpy import NaN
 import numpy as np
 import pandas
-import csv
-from typing import List
 import glob
 import time
 import json
@@ -97,7 +94,7 @@ def ReadSettings():
         print ('\033[92m' + '################### END SETINGS ##################'+'\033[0m')
         print()
         print()
-        time.sleep(5)
+        time.sleep(3)
         return True
     except:
         print ('\033[93m' + '#################### SETINGS ####################'+'\033[0m')
@@ -108,7 +105,7 @@ def ReadSettings():
         print ('\033[93m' + '################### END SETINGS #################'+'\033[0m')
         print()
         print()
-        time.sleep(5)
+        time.sleep(3)
         return False    
 
 def SaveSettings():
@@ -128,7 +125,7 @@ if not ReadSettings():
 
 ReadProcessed()
 
-
+print ('\033[92m' + 'Waiting for new CSV files........'+'\033[0m')
 while True:
 
     files = glob.glob(settings['TrendPath'] +'/*.csv')
